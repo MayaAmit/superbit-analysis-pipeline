@@ -8,6 +8,7 @@ from esutil import htm
 from argparse import ArgumentParser
 
 from annular_jmac import Annular, ShearCalc
+from make_redshift_cat import make_redshift_catalog
 from superbit_lensing import utils
 
 def parse_args():
@@ -24,6 +25,8 @@ def parse_args():
                         help='Output selected source catalog filename')
     parser.add_argument('-outdir', type=str, default=None,
                         help='Output directory')
+    parser.add_argument('-detection_band', type=str, default='b',
+                        help='Detection bandpass [default: b]')
     parser.add_argument('-cluster_redshift', type=str, default=None,
                         help='Redshift of cluster')
     parser.add_argument('-redshift_cat', type=str, default=None,
@@ -183,7 +186,7 @@ class AnnularCatalog():
         except:
             # Assume real data -- need to have cluster redshift defined!
             # And some basic RA/Dec columns
-            ra_col = 'ALPHAWIN_J2000'; dec_col = 'DELTAWIN_J2000'; z_col = 'Redshift'
+            ra_col = 'RA'; dec_col = 'DEC'; z_col = 'Redshift'
             if self.cluster_redshift == None:
                 print('No cluster_redshift argument supplied; ' +\
                         'no redshift cuts will be made')
@@ -242,18 +245,12 @@ class AnnularCatalog():
 
         # Access truth file name
         cat_info = self.cat_info
-
-        if cat_info['redshift_cat'] is None:
-            redshift_name = ''.join([self.run_name,'_redshifts.fits'])
-            redshift_dir = self.data_dir
-            redshift_cat = os.path.join(redshift_dir, redshift_name)
-            self.cat_info['redshift_cat'] = redshift_cat
-
-        else:
-            redshift_cat = self.redshift_cat
+        data_dir = self.cat_info['data_dir']
+        redshift_cat = self.redshift_cat
 
         # Filter out foreground galaxies using redshifts in truth file
         self._redshift_select(redshift_cat, overwrite=overwrite)
+
 
         # Apply selection cuts and produce responsivity-corrected shear moments
         # Return selection (quality) cuts
@@ -282,11 +279,11 @@ class AnnularCatalog():
 
         # TODO: It would be nice to move selection cuts
         # to a different file
-        min_Tpsf = 0.5
+        min_Tpsf = 0.6
         max_sn = 1000
-        min_sn = 10
+        min_sn = 7
         min_T = 0.0
-        max_T = 10
+        max_T = 100
 
         if self.cluster_redshift != None:
             # Add in a little bit of a safety margin -- maybe a bad call for simulated data?
@@ -497,6 +494,7 @@ def main(args):
     outfile = args.outfile
     outdir = args.outdir
     cluster_redshift = args.cluster_redshift
+    detection_band = args.detection_band
     redshift_cat = args.redshift_cat
     nfw_file = args.nfw_file
     Nresample = args.Nresample
@@ -514,13 +512,12 @@ def main(args):
 
     ## Get center of galaxy cluster for fitting
     ## Throw error if image can't be read in
-
-    detect_cat = os.path.join(data_dir, target_name,
-                                f'det/cat/{target_name}_coadd_det_cat.fits'
-                                )
-    detect_im = os.path.join(data_dir, target_name,
-                                f'det/coadd/{target_name}_coadd_det.fits'
-                                )
+    detect_cat = os.path.join(data_dir, target_name, detection_band,
+        f'coadd/{target_name}_coadd_{detection_band}_cat.fits'
+    )
+    detect_im = os.path.join(data_dir, target_name, detection_band,
+        f'coadd/{target_name}_coadd_{detection_band}.fits'
+    )
     print(f'using detection catalog {detect_cat}')
     print(f'using detection image {detect_im}')
 
@@ -536,6 +533,14 @@ def main(args):
         print('\n\n\nNo coadd image center found, cannot calculate tangential shear\n\n.')
         raise e
 
+    ## Make dummy redshift catalog -- should be a flag!
+    print("Making redshift catalog")
+    redshift_cat = make_redshift_catalog(
+        datadir=data_dir, target=target_name,
+        band=detection_band, detect_cat_path=detect_cat
+    )
+
+
     if nfw_seed is None:
         nfw_seed = utils.generate_seeds(1)
 
@@ -543,6 +548,7 @@ def main(args):
     ## quality-selected galaxy catalog
 
     cat_info={
+        'data_dir': data_dir,
         'detect_cat': detect_cat,
         'mcal_file': mcal_file,
         'run_name': target_name,
