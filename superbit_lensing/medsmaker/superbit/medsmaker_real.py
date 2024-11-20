@@ -470,6 +470,47 @@ class BITMeasurement():
 
         return
 
+    def set_psfex_model_files(self, use_coadd=False):
+        '''
+        Utility function to grab PSFEx model names for when you 
+        don't want to have to run PSFEx all over again
+        ''' 
+        imcats = self.image_cats 
+
+        psfex_outdir = os.path.join(
+            os.path.dirname(imcats[0]), 'psfex-output'
+        )
+
+        psfex_model_files = [
+            os.path.join(
+                psfex_outdir, 
+                os.path.basename(x).replace(
+                    'cat.fits', 'starcat.psf'
+                )
+            ) for x in imcats
+        ]
+
+        if use_coadd:
+            # Grab the PSF coadd and prepend it to list of PSFs
+            coadd_psf_filename = os.path.basename(
+                self.coadd_img_file
+            ).replace('.fits', '_starcat.psf')
+
+            coadd_psf_file = os.path.join(
+                os.path.dirname(self.coadd_img_file),
+                'psfex-output',
+                coadd_psf_filename
+            )
+            
+            psfex_model_files.insert(0, coadd_psf_file)
+
+            
+        print(f"Using PSF models: {psfex_model_files}")
+
+        self.psf_models = [
+            psfex.PSFEx(m) for m in psfex_model_files
+        ]
+
     def _make_psfex_model(self, im_cat, config_path,
                           star_config, psf_seed=None):
         '''
@@ -503,21 +544,22 @@ class BITMeasurement():
         outcat_name = os.path.join(
             psfex_outdir,
             psfcat_name.replace('_starcat.fits','.psfex_starcat.fits')
-            )
+        )
         psfex_model_file = os.path.join(
             psfex_outdir,
             os.path.basename(
                 psfcat_name.replace('.fits','.psf')
-                )
             )
+        )
 
         # Now run PSFEx on that image and accompanying catalog
         psfex_config_arg = '-c '+ config_path + 'psfex.config'
         psfdir_arg = f'-PSF_DIR {psfex_outdir}'
 
-        cmd = ' '.join(['psfex', psfcat_name, psfdir_arg, psfex_config_arg, \
-                        '-OUTCAT_NAME', outcat_name, autoselect_arg]
-                        )
+        cmd = ' '.join(
+            ['psfex', psfcat_name, psfdir_arg, psfex_config_arg, \
+                '-OUTCAT_NAME', outcat_name, autoselect_arg]
+        )
         self.logprint("psfex cmd is " + cmd)
         os.system(cmd)
 
@@ -716,8 +758,8 @@ class BITMeasurement():
             weight_files.append(weight_name)
 
         if use_coadd == True:
-            img_files.insert(0, coadd_image)
-            wgt_files.insert(0, coadd_weight)
+            image_files.insert(0, coadd_image)
+            weight_files.insert(0, coadd_weight)
 
         # If used, will be put first
         Nim = len(image_files)

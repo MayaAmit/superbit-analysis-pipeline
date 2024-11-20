@@ -92,7 +92,7 @@ def main(args):
             logprint(
                 f'Warning: Configuration file {starparams_yaml_file} not ' +
                 f'found in {star_config_dir}. Setting "star_params" to None'
-                )
+            )
             star_config = None
 
         # Load in the science frames
@@ -112,9 +112,9 @@ def main(args):
         outfile = os.path.join(band_outdir, outfile)
 
         # Set up astromatic (sex & psfex & swarp) configs
-        astro_config_dir = str(Path(utils.MODULE_DIR,
-                               'medsmaker/superbit/astro_config/')
-                               )
+        astro_config_dir = str(
+            Path(utils.MODULE_DIR, 'medsmaker/superbit/astro_config/')
+        )
 
         # Create an instance of BITMeasurement
         logprint('Setting up BITMeasurement configuration...\n')
@@ -127,7 +127,7 @@ def main(args):
              band_outdir,
              log=log,
              vb=vb
-             )
+        )
 
         # TODO: Make this less hard-coded
         # Create an instance of HotColdSExtractor
@@ -144,7 +144,7 @@ def main(args):
             astro_config_dir,
             log=log,
             vb=vb
-            )
+        )
 
 
         # Get detection source file & catalog
@@ -177,7 +177,7 @@ def main(args):
             psf_mode=psf_mode,
             psf_seed=psf_seed,
             star_config=star_config,
-            )
+        )
 
         logprint('Making MEDS... \n')
 
