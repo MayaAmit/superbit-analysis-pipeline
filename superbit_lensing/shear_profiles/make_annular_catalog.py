@@ -304,43 +304,43 @@ class AnnularCatalog():
 
         mcal = self.joined_gals
 
-        noshear_selection = mcal[(mcal['T_noshear'] >= min_Tpsf*mcal['Tpsf_noshear'])\
+        noshear_selection = mcal[(mcal['T_noshear'] > min_Tpsf*mcal['Tpsf_noshear'])\
                                  & (mcal['T_noshear'] < max_T)\
-                                 & (mcal['T_noshear'] >= min_T)\
+                                 & (mcal['T_noshear'] > min_T)\
                                  & (mcal['s2n_noshear'] > min_sn)\
                                  & (mcal['s2n_noshear'] < max_sn)\
                                  & (mcal['redshift'] > min_redshift)
                                  ]
 
-        selection_1p = mcal[(mcal['T_1p'] >= min_Tpsf*mcal['Tpsf_1p'])\
-                            & (mcal['T_1p'] <= max_T)\
-                            & (mcal['T_1p'] >= min_T)\
+        selection_1p = mcal[(mcal['T_1p'] > min_Tpsf*mcal['Tpsf_1p'])\
+                            & (mcal['T_1p'] < max_T)\
+                            & (mcal['T_1p'] > min_T)\
                             & (mcal['s2n_1p'] > min_sn)\
                             & (mcal['s2n_1p'] < max_sn)\
                             & (mcal['redshift'] > min_redshift)
                             ]
 
-        selection_1m = mcal[(mcal['T_1m'] >= min_Tpsf*mcal['Tpsf_1m'])\
-                            & (mcal['T_1m'] <= max_T)\
-                            & (mcal['T_1m'] >= min_T)\
+        selection_1m = mcal[(mcal['T_1m'] > min_Tpsf*mcal['Tpsf_1m'])\
+                            & (mcal['T_1m'] < max_T)\
+                            & (mcal['T_1m'] > min_T)\
                             & (mcal['s2n_1m'] > min_sn)\
                             & (mcal['s2n_1m'] < max_sn)\
                             & (mcal['redshift'] > min_redshift)
                             ]
 
-        selection_2p = mcal[(mcal['T_2p'] >= min_Tpsf*mcal['Tpsf_2p'])\
-                            & (mcal['T_2p'] <= max_T)\
-                            & (mcal['T_2p'] >= min_T)\
+        selection_2p = mcal[(mcal['T_2p'] > min_Tpsf*mcal['Tpsf_2p'])\
+                            & (mcal['T_2p'] < max_T)\
+                            & (mcal['T_2p'] > min_T)\
                             & (mcal['s2n_2p'] > min_sn)\
                             & (mcal['s2n_2p'] < max_sn)\
                             & (mcal['redshift'] > min_redshift)
                             ]
 
-        selection_2m = mcal[(mcal['T_2m'] >= min_Tpsf*mcal['Tpsf_2m'])\
-                            & (mcal['T_2m'] <= max_T)\
-                            & (mcal['T_2m'] >= min_T)\
+        selection_2m = mcal[(mcal['T_2m'] > min_Tpsf*mcal['Tpsf_2m'])\
+                            & (mcal['T_2m'] < max_T)\
+                            & (mcal['T_2m'] > min_T)\
                             & (mcal['s2n_2m'] > min_sn)\
-                            & (mcal['s2n_2m'] <max_sn)\
+                            & (mcal['s2n_2m'] < max_sn)\
                             & (mcal['redshift'] > min_redshift)
                             ]
 
