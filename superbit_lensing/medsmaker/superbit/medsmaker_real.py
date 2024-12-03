@@ -25,8 +25,8 @@ Goals:
 '''
 
 class BITMeasurement():
-    def __init__(self, image_files, data_dir, target_name, 
-                band, detection_bandpass, outdir, work_dir=None, 
+    def __init__(self, image_files, data_dir, target_name,
+                band, detection_bandpass, outdir, work_dir=None,
                 log=None, vb=False):
         '''
         data_path: path to the image data not including target name
@@ -39,7 +39,7 @@ class BITMeasurement():
         self.outdir = outdir
         self.vb = vb
         self.band = band
-        self.detection_bandpass = detection_bandpass 
+        self.detection_bandpass = detection_bandpass
 
         self.image_cats = []
         self.detect_img_path = None
@@ -115,22 +115,22 @@ class BITMeasurement():
 
     def make_exposure_weights(self):
         '''
-        Make inverse-variance weight maps because ngmix needs them and we 
+        Make inverse-variance weight maps because ngmix needs them and we
         don't have them for SuperBIT.
         Use the SExtractor BACKGROUND_RMS check-image as a basis
         '''
-        
+
         img_names = self.image_files
 
         for img_name in img_names:
             # Read in the BACKGROUND_RMS image
             rms_name = img_name.replace('.fits', '.bkg_rms.fits')
-            
+
             with fits.open(rms_name) as rms:
                 # Assuming the image data is in the primary HDU
-                background_rms_map = rms[0].data  
+                background_rms_map = rms[0].data
                 # Keep the original header to use for the weight map
-                header = rms[0].header  
+                header = rms[0].header
 
                 # Make a weight map
                 weight_map = 1 / (background_rms_map**2)
@@ -140,8 +140,8 @@ class BITMeasurement():
                 hdu = fits.PrimaryHDU(weight_map, header=header)
                 hdu.writeto(wgt_file_name, overwrite=True)
 
-            print(f'Weight map saved to {wgt_file_name}')        
-        
+            print(f'Weight map saved to {wgt_file_name}')
+
     def _run_sextractor(self, image_file, cat_dir, config_dir,
                         weight_file=None, back_type='AUTO'):
         '''
@@ -210,13 +210,13 @@ class BITMeasurement():
         outfile_arg = f'-IMAGEOUT_NAME {coadd_file} ' + \
                       f'-WEIGHTOUT_NAME {weight_file} '
 
-        cmd_arr = {'swarp': 'swarp', 
-                    'image_arg': image_args, 
+        cmd_arr = {'swarp': 'swarp',
+                    'image_arg': image_args,
                     'resamp_arg': resamp_arg,
-                    'outfile_arg': outfile_arg, 
+                    'outfile_arg': outfile_arg,
                     'config_arg': config_arg
                     }
-       
+
         # Make external headers if band == detection
         self._make_external_headers(cmd_arr)
 
@@ -225,18 +225,15 @@ class BITMeasurement():
         self.logprint('swarp cmd is ' + cmd)
         os.system(cmd)
     
-        # Join weight file with image file in an MEF
-        self.augment_coadd_image()
-
     def _make_external_headers(self, cmd_arr):
         """ Make external swarp header files to register coadds to one another
-        in different bandpassess. Allows SExtractor to be run in dual-image 
+        in different bandpassess. Allows SExtractor to be run in dual-image
         mode and thus color cuts to be made """
-        
+
         # Need to create a copy of cmd_arr, or these values get
         # passed to make_coadd_image!
         head_arr = copy.copy(cmd_arr)
-        
+
         # This line pulls out the filename in -IMAGEOUT_NAME [whatever.fits]
         # argument then creates header name by replacing ".fits" with ".head"
         header_name = \
@@ -245,22 +242,22 @@ class BITMeasurement():
         if self.band == self.detection_bandpass:
             self.logprint(f'\nSwarp: band {self.band} matches ' +
                          'detection bandpass setting')
-            self.logprint('Making external headers for u, g, b '+ 
+            self.logprint('Making external headers for u, g, b '+
                           f'based on {self.band}\n')
-            
+
             # First, make the detection bandpass header
             header_only_arg = '-HEADER_ONLY Y'
             head_arr['header_only_arg'] = header_only_arg
-            
+
             header_outfile = ' '.join(['-IMAGEOUT_NAME', header_name])
-            
+
             # Update swarp command list (dict)
             head_arr['outfile_arg'] = header_outfile
-            
+
             swarp_header_cmd = ' '.join(head_arr.values())
             self.logprint('swarp header-only cmd is ' + swarp_header_cmd)
             os.system(swarp_header_cmd)
-            
+
             ## Cool, now that's done, create headers for the other bands too.
             all_bands = ['u', 'b', 'g']
             bands_to_do = np.setdiff1d(all_bands, self.detection_bandpass)
@@ -270,12 +267,12 @@ class BITMeasurement():
                 f'/{self.detection_bandpass}/',f'/{band}/').replace(
                 f'{self.detection_bandpass}.head',f'{band}.head'
                 )
-                
+
                 # Copy detection bandpass header to other band coadd dirs
                 cp_cmd = f'cp {header_name} {band_header}'
                 print(f'copying {header_name} to {band_header}')
                 os.system(cp_cmd)
-                
+
         else:
             print(f'\nSwarp: looking for external header...')
 
@@ -338,7 +335,7 @@ class BITMeasurement():
             self.coadd_img_file,
             weight_file=self.coadd_img_file,
             cat_dir=coadd_dir,
-            config_dir=config_dir, 
+            config_dir=config_dir,
             back_type='MANUAL'
         )
 
@@ -380,13 +377,13 @@ class BITMeasurement():
             self.detect_img_file = detection_img_file
 
         if use_band_coadd == True:
-            self.coadd_img_file = detection_img_file 
+            self.coadd_img_file = detection_img_file
             self.detect_img_file = detection_img_file
-            
+
         if os.path.exists(detection_cat_file) == False:
             raise FileNotFoundError('No detection catalog found ',
                                     f'at {detection_cat_file}\nCheck name?')
-            
+
         else:
             self.detect_cat_path = detection_cat_file
             dcat = fits.open(detection_cat_file)
@@ -472,10 +469,10 @@ class BITMeasurement():
 
     def set_psfex_model_files(self, use_coadd=False):
         '''
-        Utility function to grab PSFEx model names for when you 
+        Utility function to grab PSFEx model names for when you
         don't want to have to run PSFEx all over again
-        ''' 
-        imcats = self.image_cats 
+        '''
+        imcats = self.image_cats
 
         psfex_outdir = os.path.join(
             os.path.dirname(imcats[0]), 'psfex-output'
@@ -483,7 +480,7 @@ class BITMeasurement():
 
         psfex_model_files = [
             os.path.join(
-                psfex_outdir, 
+                psfex_outdir,
                 os.path.basename(x).replace(
                     'cat.fits', 'starcat.psf'
                 )
@@ -501,10 +498,10 @@ class BITMeasurement():
                 'psfex-output',
                 coadd_psf_filename
             )
-            
+
             psfex_model_files.insert(0, coadd_psf_file)
 
-            
+
         print(f"Using PSF models: {psfex_model_files}")
 
         self.psf_models = [
@@ -684,7 +681,7 @@ class BITMeasurement():
             sscat: input catalog from which to select stars
             truthcat: a pre-vetted catalog of stars
         '''
-        
+
         ss_fits = fits.open(sscat)
         if len(ss_fits) == 3:
             # It is an ldac
@@ -735,7 +732,7 @@ class BITMeasurement():
 
         # Save output star catalog to file
         ss_fits[ext].data = ss[wg_stars]
-        
+
         outname = sscat.replace('_cat.fits','_starcat.fits')
         ss_fits.writeto(outname, overwrite=True)
 
@@ -746,11 +743,11 @@ class BITMeasurement():
         # is particularly long
 
         image_files = []; weight_files = []
-        
+
         coadd_image  = self.detect_img_file
-        coadd_weight = self.detect_img_file.replace('.fits', '.weight.fits') 
-        coadd_segmap = self.detect_img_file.replace('.fits', '.sgm.fits') 
-        
+        coadd_weight = self.detect_img_file.replace('.fits', '.weight.fits')
+        coadd_segmap = self.detect_img_file.replace('.fits', '.sgm.fits')
+
         for img in self.image_files:
             bkgsub_name = img.replace('.fits','.sub.fits')
             weight_name = img.replace('.fits', '.weight.fits')
