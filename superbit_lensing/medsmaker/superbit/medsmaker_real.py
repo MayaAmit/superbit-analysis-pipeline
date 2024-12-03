@@ -164,7 +164,7 @@ class BITMeasurement():
         checkname_arg = f'-CHECKIMAGE_NAME  {bkg_name},{seg_name},{rms_name}'
 
         if weight_file is not None:
-            weight_arg = f'-WEIGHT_IMAGE "{weight_file}[1]" ' + \
+            weight_arg = f'-WEIGHT_IMAGE "{weight_file}" ' + \
                          '-WEIGHT_TYPE MAP_WEIGHT'
         else:
             weight_arg = '-WEIGHT_TYPE NONE'
@@ -224,7 +224,7 @@ class BITMeasurement():
         cmd = ' '.join(cmd_arr.values())
         self.logprint('swarp cmd is ' + cmd)
         os.system(cmd)
-    
+
     def _make_external_headers(self, cmd_arr):
         """ Make external swarp header files to register coadds to one another
         in different bandpassess. Allows SExtractor to be run in dual-image
@@ -319,13 +319,14 @@ class BITMeasurement():
 
         # Set coadd filepath if it hasn't been set
         coadd_outname = f'{self.target_name}_coadd_{self.band}.fits'
-        #weight_outname = coadd_outname.replace('.fits', '.weight.fits')
-        #weight_filepath = os.path.join(coadd_dir, weight_outname)
-
+        weight_outname = coadd_outname.replace('.fits', '.weight.fits')
+        # Set attribute if it hasn't been set
         try:
             self.coadd_img_file
         except AttributeError:
             self.coadd_img_file = os.path.join(coadd_dir, coadd_outname)
+        # Set path to weight
+        weight_img_path = os.path.join(coadd_dir, weight_outname)
 
         # Set pixel scale
         self.pix_scale = utils.get_pixel_scale(self.coadd_img_file)
@@ -333,7 +334,7 @@ class BITMeasurement():
         # Run SExtractor on coadd
         cat_name = self._run_sextractor(
             self.coadd_img_file,
-            weight_file=self.coadd_img_file,
+            weight_file=weight_img_path,
             cat_dir=coadd_dir,
             config_dir=config_dir,
             back_type='MANUAL'
