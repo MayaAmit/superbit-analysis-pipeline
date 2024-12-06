@@ -14,7 +14,7 @@
 
 source /work/mccleary_group/miniconda3/etc/profile.d/conda.sh
 
-conda activate sbmcal_139v2
+conda activate sbmcal_139v3
 echo $PATH
 echo $PYTHONPATH
 dirname="slurm_outfiles"
@@ -29,15 +29,17 @@ then
 
  echo "Proceeding with code..."
 
-export OUTDIR='/scratch/j.mccleary/Abell3411/'
-export DATADIR='/work/mccleary_group/superbit/union'
-export CODEDIR='/work/mccleary_group/superbit/superbit-metacal/superbit_lensing'
+export TARGET="Abell3411"
+export BAND="b"
+export DATADIR="/work/mccleary_group/superbit/union"
+export OUTDIR="${DATADIR}/${TARGET}/${BAND}/out"
+export CODEDIR="/work/mccleary_group/superbit/superbit-metacal/superbit_lensing"
 
 ## medsmaker
-#python $CODEDIR/medsmaker/scripts/process_2023.py -outdir $OUTDIR Abell3411 b $DATADIR -psf_mode=psfex -psf_seed=1134891269 -star_config_dir $CODEDIR/medsmaker/configs --meds_coadd
+python $CODEDIR/medsmaker/scripts/process_2023.py -outdir $OUTDIR $TARGET $BAND $DATADIR -psf_mode=psfex -psf_seed=33876300 -star_config_dir $CODEDIR/medsmaker/configs --meds_coadd
 
 ## metacalibration
-python $CODEDIR/metacalibration/ngmix_fit_superbit3.py $OUTDIR/Abell3411_b_meds.fits $OUTDIR/Abell3411_b_mcal.fits -outdir=$OUTDIR -n 48 -seed=4125165605 --overwrite 
+python $CODEDIR/metacalibration/ngmix_fit_superbit3.py $OUTDIR/"${TARGET}_${BAND}_meds.fits" $OUTDIR/"${TARGET}_${BAND}_mcal.fits" -outdir=$OUTDIR -n 48 -seed=4225165605 --overwrite 
 
 ## shear_profiles
-python $CODEDIR/shear_profiles/make_annular_catalog.py $DATADIR Abell3411 $OUTDIR/Abell3411_b_mcal.fits $OUTDIR/Abell3411_b_annular.fits -outdir=$OUTDIR --overwrite -cluster_redshift=0.17 -redshift_cat=$DATADIR/catalogs/redshifts/Abell3411_NED_redshifts.csv
+python $CODEDIR/shear_profiles/make_annular_catalog.py $DATADIR $TARGET $OUTDIR/"${TARGET}_${BAND}_mcal.fits" $OUTDIR/"${TARGET}_${BAND}_annular.fits" -outdir=$OUTDIR --overwrite -cluster_redshift=0.1689 -redshift_cat=$DATADIR/"catalogs/redshifts/${TARGET}_NED_redshifts.csv"
