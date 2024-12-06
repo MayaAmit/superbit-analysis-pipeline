@@ -151,7 +151,7 @@ class BITMeasurement():
         cat_name = os.path.basename(image_file).replace('.fits','_cat.fits')
         cat_file = os.path.join(cat_dir, cat_name)
 
-        image_arg  = f'"{image_file}"'
+        image_arg  = f'"{image_file}[0]"'
         name_arg   = '-CATALOG_NAME ' + cat_file
         config_arg = f'-c {os.path.join(config_dir, "sextractor.real.config")}'
         param_arg  = f'-PARAMETERS_NAME {os.path.join(config_dir, "sextractor.param")}'
@@ -218,7 +218,7 @@ class BITMeasurement():
                     }
 
         # Make external headers if band == detection
-        #self._make_external_headers(cmd_arr)
+        self._make_external_headers(cmd_arr)
 
         # Actually run the command
         cmd = ' '.join(cmd_arr.values())
