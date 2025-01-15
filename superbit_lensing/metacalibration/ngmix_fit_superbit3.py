@@ -206,6 +206,7 @@ class SuperBITNgmixFitter():
 
         obslist = self.medsObj.get_obslist(iobj, weight_type)
 
+        '''
         # We don't want to fit to the coadd, as its PSF is not
         # well defined
         if self.has_coadd is True:
@@ -215,7 +216,7 @@ class SuperBITNgmixFitter():
             for obs in obslist[1:]:
                 se_obslist.append(obs)
             obslist = se_obslist
-
+        '''
         return obslist
 
 class SuperBITPlotter(object):
